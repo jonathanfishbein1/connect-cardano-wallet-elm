@@ -1,13 +1,13 @@
 {
-    "name": "client",
+    "name": "connect-cardano-wallet-elm",
     "private": true,
     "version": "1.0.0",
     "description": "",
     "type": "module",
     "scripts": {
-        "development-connect-wallet": "webpack serve --config connect-wallet-webpack.config.js --open",
-        "build-connect-wallet": "webpack build --config connect-wallet-webpack.config.js",
-        "start-connect-wallet": "npm run build-connect-wallet && cp server.cjs dist/ && cd dist && node server.cjs"
+        "development-connect-cardano-wallet-elm": "webpack serve --config connect-cardano-wallet-elm-webpack.config.js --open",
+        "build-connect-cardano-wallet-elm": "webpack build --config connect-cardano-wallet-elm-webpack.config.js",
+        "start-connect-cardano-wallet-elm": "yarn run build-connect-cardano-wallet-elm && cp server.cjs dist/ && cd dist && node server.cjs"
     },
     "keywords": [],
     "author": "",
