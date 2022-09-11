@@ -41,8 +41,8 @@ type Msg
 type Model
     = NotConnectedNotAbleTo
     | NotConnectedButWalletsInstalled AvailableWallets
-    | ChoosingWallet AvailableWallets (Dropdown.State SupportedWallet) SupportedWallet
-    | Connecting AvailableWallets (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
+    | ChoosingWallet AvailableWallets (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
+    | Connecting AvailableWallets (Dropdown.State SupportedWallet) SupportedWallet
     | ConnectionEstablished AvailableWallets (Dropdown.State SupportedWallet) EnabledSupportedWallet
 
 
@@ -87,7 +87,7 @@ update msg model =
         ( OptionPicked option, ChoosingWallet installedWallets dropdownState choosenWallet ) ->
             case option of
                 Just walletChoice ->
-                    ( Connecting installedWallets dropdownState option, connectWallet (encodeWallet walletChoice) )
+                    ( Connecting installedWallets dropdownState walletChoice, connectWallet (encodeWallet walletChoice) )
 
                 Nothing ->
                     ( ChoosingWallet installedWallets dropdownState choosenWallet, Cmd.none )
@@ -104,7 +104,7 @@ update msg model =
                 ( state, cmd ) =
                     Dropdown.update (dropdownConfig model) subMsg model dropdownState
             in
-            ( ChoosingWallet installedWallets state choosenWallet, cmd )
+            ( ChoosingWallet installedWallets state (Just choosenWallet), cmd )
 
         ( ReceiveEnabledWallet dropdownState maybeChoosenWallet, NotConnectedButWalletsInstalled installedWallets ) ->
             case maybeChoosenWallet of
@@ -115,7 +115,7 @@ update msg model =
                     ( NotConnectedButWalletsInstalled installedWallets, Cmd.none )
 
         ( Connect choosenWallet, NotConnectedButWalletsInstalled installedWallets ) ->
-            ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") choosenWallet, Cmd.none )
+            ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") (Just choosenWallet), Cmd.none )
 
         ( ReceiveWalletConnected wallet, Connecting installedWallets dropdownState _ ) ->
             case wallet of
@@ -137,8 +137,8 @@ dropdownConfig model =
             encodeWallet item
                 |> Element.text
 
-        itemToElement : a -> b -> SupportedWallet -> Element.Element msg
-        itemToElement _ _ supportedWallet =
+        itemToElement : Bool -> Bool -> SupportedWallet -> Element.Element msg
+        itemToElement selected _ supportedWallet =
             case supportedWallet of
                 Nami ->
                     Element.row
@@ -155,6 +155,17 @@ dropdownConfig model =
                         , encodeWallet
                             supportedWallet
                             |> Element.text
+                        , if selected then
+                            Element.image
+                                [ Element.width (Element.px 50)
+                                , Element.height (Element.px 50)
+                                ]
+                                { src = "./checkmark.svg"
+                                , description = "checkmark"
+                                }
+
+                          else
+                            Element.none
                         ]
 
                 Eternl ->
@@ -172,6 +183,17 @@ dropdownConfig model =
                         , encodeWallet
                             supportedWallet
                             |> Element.text
+                        , if selected then
+                            Element.image
+                                [ Element.width (Element.px 50)
+                                , Element.height (Element.px 50)
+                                ]
+                                { src = "./checkmark.svg"
+                                , description = "checkmark"
+                                }
+
+                          else
+                            Element.none
                         ]
 
                 Flint ->
@@ -189,12 +211,23 @@ dropdownConfig model =
                         , encodeWallet
                             supportedWallet
                             |> Element.text
+                        , if selected then
+                            Element.image
+                                [ Element.width (Element.px 50)
+                                , Element.height (Element.px 50)
+                                ]
+                                { src = "./checkmark.svg"
+                                , description = "checkmark"
+                                }
+
+                          else
+                            Element.none
                         ]
     in
     Dropdown.basic
         { itemsFromModel =
-            always
-                (case model of
+            \m ->
+                case m of
                     NotConnectedButWalletsInstalled installedWallets ->
                         installedWallets
 
@@ -209,12 +242,14 @@ dropdownConfig model =
 
                     _ ->
                         []
-                )
         , selectionFromModel =
             \m ->
                 case m of
-                    Connecting _ _ (Just selectedOption) ->
+                    Connecting _ _ selectedOption ->
                         Just selectedOption
+
+                    ChoosingWallet _ _ selectedOption ->
+                        selectedOption
 
                     _ ->
                         Nothing
@@ -227,64 +262,148 @@ dropdownConfig model =
         |> Dropdown.withPromptElement
             (case model of
                 ConnectionEstablished _ _ (EnabledSupportedWallet supportedWallet) ->
-                    Element.row
-                        [ Element.width (Element.px 200)
-                        , Element.spacing 10
-                        ]
-                        [ Element.image
-                            [ Element.width (Element.px 50)
-                            , Element.height (Element.px 50)
-                            ]
-                            (case supportedWallet of
-                                Nami ->
+                    case supportedWallet of
+                        Nami ->
+                            Element.row
+                                [ Element.width (Element.px 200)
+                                , Element.spacing 10
+                                ]
+                                [ Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
                                     { src = "./nami.svg"
                                     , description = "Nami"
                                     }
+                                , encodeWallet
+                                    supportedWallet
+                                    |> Element.text
+                                , Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
+                                    { src = "./checkmark.svg"
+                                    , description = "checkmark"
+                                    }
+                                ]
 
-                                Eternl ->
+                        Eternl ->
+                            Element.row
+                                [ Element.width (Element.px 200)
+                                , Element.spacing 10
+                                ]
+                                [ Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
                                     { src = "./eternl.webp"
                                     , description = "Eternl"
                                     }
+                                , encodeWallet
+                                    supportedWallet
+                                    |> Element.text
+                                , Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
+                                    { src = "./checkmark.svg"
+                                    , description = "checkmark"
+                                    }
+                                ]
 
-                                Flint ->
+                        Flint ->
+                            Element.row
+                                [ Element.width (Element.px 200)
+                                , Element.spacing 10
+                                ]
+                                [ Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
                                     { src = "./flint.svg"
                                     , description = "Flint"
                                     }
-                            )
-                        , encodeWallet
-                            supportedWallet
-                            |> Element.text
-                        ]
+                                , encodeWallet
+                                    supportedWallet
+                                    |> Element.text
+                                , Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
+                                    { src = "./checkmark.svg"
+                                    , description = "checkmark"
+                                    }
+                                ]
 
                 ChoosingWallet _ _ supportedWallet ->
-                    Element.row
-                        [ Element.width (Element.px 200)
-                        , Element.spacing 10
-                        ]
-                        [ Element.image
-                            [ Element.width (Element.px 50)
-                            , Element.height (Element.px 50)
-                            ]
-                            (case supportedWallet of
-                                Nami ->
+                    case supportedWallet of
+                        Just Nami ->
+                            Element.row
+                                [ Element.width (Element.px 200)
+                                , Element.spacing 10
+                                ]
+                                [ Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
                                     { src = "./nami.svg"
                                     , description = "Nami"
                                     }
+                                , encodeWallet
+                                    Nami
+                                    |> Element.text
+                                ]
 
-                                Eternl ->
+                        Just Eternl ->
+                            Element.row
+                                [ Element.width (Element.px 200)
+                                , Element.spacing 10
+                                ]
+                                [ Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
                                     { src = "./eternl.webp"
                                     , description = "Eternl"
                                     }
+                                , encodeWallet
+                                    Eternl
+                                    |> Element.text
+                                , Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
+                                    { src = "./checkmark.svg"
+                                    , description = "checkmark"
+                                    }
+                                ]
 
-                                Flint ->
+                        Just Flint ->
+                            Element.row
+                                [ Element.width (Element.px 200)
+                                , Element.spacing 10
+                                ]
+                                [ Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
                                     { src = "./flint.svg"
                                     , description = "Flint"
                                     }
-                            )
-                        , encodeWallet
-                            supportedWallet
-                            |> Element.text
-                        ]
+                                , encodeWallet
+                                    Flint
+                                    |> Element.text
+                                , Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
+                                    { src = "./checkmark.svg"
+                                    , description = "checkmark"
+                                    }
+                                ]
+
+                        Nothing ->
+                            Element.none
 
                 _ ->
                     Element.text "Select Wallet"

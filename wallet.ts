@@ -2,9 +2,12 @@
 import nami from './images/nami.svg'
 import eternl from './images/eternl.webp'
 import flint from './images/flint.svg'
+import checkmark from './images/checkmark.svg'
+
 console.log(nami)
 console.log(eternl)
 console.log(flint)
+console.log(checkmark)
 
 export type SupportedWallet =
     'nami'
