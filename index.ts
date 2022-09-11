@@ -23,7 +23,8 @@ app.ports.checkForEnabledWallet.subscribe(async () => {
     console.log('checkForEnabledWallet')
     console.log(await Wallet.walletsInstalled)
     console.log(await Wallet.hasWalletEnabled())
-    app.ports.receiveEnabledWallet.send(await Wallet.hasWalletEnabled())
+    const enabledWallet = await Wallet.hasWalletEnabled()
+    app.ports.receiveEnabledWallet.send(enabledWallet === undefined ? '' : enabledWallet)
 })
 
 

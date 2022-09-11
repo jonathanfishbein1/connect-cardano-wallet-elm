@@ -102,7 +102,7 @@ update msg model =
                     ( ConnectionEstablished installedWallets dropdownState choosenWallet, Cmd.none )
 
                 Nothing ->
-                    ( NotConnectedNotAbleTo, Cmd.none )
+                    ( NotConnectedButWalletsInstalled installedWallets, Cmd.none )
 
         ( Connect choosenWallet, NotConnectedButWalletsInstalled installedWallets ) ->
             ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") choosenWallet, Cmd.none )
@@ -345,16 +345,11 @@ subscriptions _ =
 
 init : List String -> ( Model, Cmd Msg )
 init walletsInstalledStrings =
-    -- let
-    --     enabledWallet : Maybe SupportedWallet
-    --     enabledWallet =
-    --         decodeWallet enabledWalletString
-    -- in
     case walletsInstalledStrings of
         [] ->
             ( NotConnectedNotAbleTo, Cmd.none )
 
-        w :: ws ->
+        _ ->
             let
                 walletsInstalled : List SupportedWallet
                 walletsInstalled =
