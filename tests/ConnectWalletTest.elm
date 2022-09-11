@@ -4,6 +4,8 @@ import ConnectWallet
 import Dropdown
 import Element
 import Expect
+import Html
+import Html.Attributes
 import Test
 import Test.Html.Query
 import Test.Html.Selector
@@ -25,12 +27,12 @@ suite =
                 Expect.equal
                     newModel
                     ConnectWallet.NotConnectedNotAbleTo
-        , Test.test "test Connect with NotConnectedAbleTo" <|
+        , Test.test "test Connect with NotConnectedButWalletsInstalled" <|
             \_ ->
                 let
                     initialModel : ConnectWallet.Model
                     initialModel =
-                        ConnectWallet.NotConnectedAbleTo [ ConnectWallet.Nami ] ConnectWallet.Nami
+                        ConnectWallet.NotConnectedButWalletsInstalled [ ConnectWallet.Nami ]
 
                     ( newModel, _ ) =
                         ConnectWallet.update (ConnectWallet.Connect ConnectWallet.Nami) initialModel
@@ -50,7 +52,7 @@ suite =
                 in
                 Expect.equal
                     newModel
-                    (ConnectWallet.ConnectionEstablished [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") ConnectWallet.Nami)
+                    (ConnectWallet.ConnectionEstablished [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") (ConnectWallet.EnabledSupportedWallet ConnectWallet.Nami))
         , Test.test "test NotConnectedNotAbleTo view" <|
             \_ ->
                 let
@@ -59,29 +61,26 @@ suite =
                         ConnectWallet.NotConnectedNotAbleTo
                 in
                 Test.Html.Query.fromHtml (ConnectWallet.view (Element.rgb255 0 0 0) initialModel)
-                    |> Test.Html.Query.find [ Test.Html.Selector.id "connect-wallet-button" ]
+                    |> Test.Html.Query.find [ Test.Html.Selector.text "No available wallet" ]
                     |> Test.Html.Query.has
-                        [ Test.Html.Selector.all
-                            [ Test.Html.Selector.disabled True
-                            , Test.Html.Selector.text "No available wallet"
-                            ]
+                        [ Test.Html.Selector.text "No available wallet"
                         ]
-        , Test.test "test NotConnectedAbleTo view" <|
+        , Test.test "test NotConnectedButWalletsInstalled view" <|
             \_ ->
                 let
                     initialModel : ConnectWallet.Model
                     initialModel =
-                        ConnectWallet.NotConnectedAbleTo [ ConnectWallet.Nami ] ConnectWallet.Nami
+                        ConnectWallet.NotConnectedButWalletsInstalled [ ConnectWallet.Nami ]
                 in
                 Test.Html.Query.fromHtml (ConnectWallet.view (Element.rgb255 0 0 0) initialModel)
-                    |> Test.Html.Query.find [ Test.Html.Selector.id "connect-wallet-button" ]
-                    |> Test.Html.Query.has [ Test.Html.Selector.text "Connect" ]
+                    |> Test.Html.Query.find [ Test.Html.Selector.attribute (Html.Attributes.attribute "data-dropdown-id" "wallet-dropdown") ]
+                    |> Test.Html.Query.has [ Test.Html.Selector.attribute (Html.Attributes.attribute "data-dropdown-id" "wallet-dropdown") ]
         , Test.test "test ConnectionEstablished view" <|
             \_ ->
                 let
                     initialModel : ConnectWallet.Model
                     initialModel =
-                        ConnectWallet.ConnectionEstablished [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") ConnectWallet.Nami
+                        ConnectWallet.ConnectionEstablished [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") (ConnectWallet.EnabledSupportedWallet ConnectWallet.Nami)
                 in
                 Test.Html.Query.fromHtml (ConnectWallet.view (Element.rgb255 0 0 0) initialModel)
                     |> Test.Html.Query.find [ Test.Html.Selector.id "wallet-dropdown" ]
@@ -98,11 +97,8 @@ suite =
                         ConnectWallet.Connecting [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") (Just ConnectWallet.Nami)
                 in
                 Test.Html.Query.fromHtml (ConnectWallet.view (Element.rgb255 0 0 0) initialModel)
-                    |> Test.Html.Query.find [ Test.Html.Selector.id "connect-wallet-button" ]
+                    |> Test.Html.Query.find [ Test.Html.Selector.text "Connecting" ]
                     |> Test.Html.Query.has
-                        [ Test.Html.Selector.all
-                            [ Test.Html.Selector.disabled True
-                            , Test.Html.Selector.text "Connecting"
-                            ]
+                        [ Test.Html.Selector.text "Connecting"
                         ]
         ]
