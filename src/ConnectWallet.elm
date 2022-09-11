@@ -12,12 +12,10 @@ port module ConnectWallet exposing
 import Browser
 import Dropdown
 import Element
-import Element.Background
 import Element.Border
 import Element.Font
 import Element.Input
 import Html
-import Html.Attributes
 import Maybe.Extra
 
 
@@ -31,15 +29,10 @@ type Msg
 
 type Model
     = NotConnectedNotAbleTo
-    | NotConnectedAbleTo (List SupportedWallet) SupportedWallet
+    | NotConnectedAbleTo (List SupportedWallet)
     | ChoosingWallet (List SupportedWallet) (Dropdown.State SupportedWallet) SupportedWallet
     | Connecting (List SupportedWallet) (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
     | ConnectionEstablished (List SupportedWallet) (Dropdown.State SupportedWallet) SupportedWallet
-
-
-buttonHoverColor : Element.Color
-buttonHoverColor =
-    Element.rgb255 3 233 244
 
 
 decodeWallet : String -> Maybe SupportedWallet
@@ -102,7 +95,7 @@ update msg model =
             in
             ( ChoosingWallet installedWallets state choosenWallet, cmd )
 
-        ( Connect choosenWallet, NotConnectedAbleTo installedWallets _ ) ->
+        ( Connect choosenWallet, NotConnectedAbleTo installedWallets ) ->
             ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") choosenWallet, Cmd.none )
 
         ( ReceiveWalletConnected wallet, Connecting installedWallets dropdownState _ ) ->
@@ -188,7 +181,7 @@ dropdownConfig model =
         { itemsFromModel =
             always
                 (case model of
-                    NotConnectedAbleTo installedWallets _ ->
+                    NotConnectedAbleTo installedWallets ->
                         installedWallets
 
                     ChoosingWallet installedWallets _ _ ->
@@ -288,19 +281,11 @@ dropdownConfig model =
 
 view : Element.Color -> Model -> Html.Html Msg
 view fontColor model =
-    let
-        id : Element.Attribute msg
-        id =
-            Element.htmlAttribute (Html.Attributes.id "connect-wallet-button")
-    in
     case model of
         NotConnectedNotAbleTo ->
             Element.layout []
                 (Element.Input.button
-                    [ Element.htmlAttribute (Html.Attributes.disabled True)
-                    , id
-                    , Element.Font.color fontColor
-                    ]
+                    []
                     { onPress =
                         Just
                             NoOp
@@ -310,23 +295,10 @@ view fontColor model =
                     }
                 )
 
-        NotConnectedAbleTo _ choosenWallet ->
+        NotConnectedAbleTo _ ->
             Element.layout [ Element.Font.color fontColor ]
-                (Element.Input.button
-                    [ Element.Background.color buttonHoverColor
-                    , Element.mouseOver
-                        [ Element.Border.glow buttonHoverColor
-                            10
-                        ]
-                    , id
-                    ]
-                    { onPress =
-                        Just
-                            (Connect choosenWallet)
-                    , label =
-                        Element.text
-                            "Connect"
-                    }
+                (Element.text
+                    "Connect"
                 )
 
         ChoosingWallet _ dropdownWallets _ ->
@@ -343,18 +315,8 @@ view fontColor model =
                     [ Dropdown.view (dropdownConfig model)
                         model
                         dropdownState
-                    , Element.Input.button
-                        [ Element.Background.color buttonHoverColor
-                        , Element.htmlAttribute (Html.Attributes.disabled True)
-                        , id
-                        ]
-                        { onPress =
-                            Just
-                                NoOp
-                        , label =
-                            Element.text
-                                "Connecting"
-                        }
+                    , Element.text
+                        "Connecting"
                     ]
                 )
 
