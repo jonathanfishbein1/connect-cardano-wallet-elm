@@ -15,9 +15,18 @@ console.log('here')
 console.log(Wallet.hasWalletEnabled())
 console.log(await Wallet.walletsInstalled)
 var app = Elm.ConnectWallet.init({
-    flags: [(await Wallet.hasWalletEnabled()), Wallet.walletsInstalled],
+    flags: Wallet.walletsInstalled,
     node: document.getElementById("elm-app-is-loaded-here")
 })
+
+app.ports.checkForEnabledWallet.subscribe(async () => {
+    console.log('checkForEnabledWallet')
+    console.log(await Wallet.walletsInstalled)
+    console.log(await Wallet.hasWalletEnabled())
+    app.ports.receiveEnabledWallet.send(await Wallet.hasWalletEnabled())
+})
+
+
 app.ports.connectWallet.subscribe(async supportedWallet => {
     const wallet = await Wallet.getWalletApi(supportedWallet!) as any
     lucid.selectWallet(wallet)

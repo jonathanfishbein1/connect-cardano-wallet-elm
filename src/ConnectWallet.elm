@@ -21,6 +21,7 @@ import Maybe.Extra
 
 type Msg
     = Connect SupportedWallet
+    | ReceiveEnabledWallet (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
     | NoOp
     | ReceiveWalletConnected (Maybe SupportedWallet)
     | OptionPicked (Maybe SupportedWallet)
@@ -29,7 +30,7 @@ type Msg
 
 type Model
     = NotConnectedNotAbleTo
-    | NotConnectedAbleTo (List SupportedWallet)
+    | NotConnectedButWalletsInstalled (List SupportedWallet)
     | ChoosingWallet (List SupportedWallet) (Dropdown.State SupportedWallet) SupportedWallet
     | Connecting (List SupportedWallet) (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
     | ConnectionEstablished (List SupportedWallet) (Dropdown.State SupportedWallet) SupportedWallet
@@ -95,18 +96,21 @@ update msg model =
             in
             ( ChoosingWallet installedWallets state choosenWallet, cmd )
 
-        ( Connect choosenWallet, NotConnectedAbleTo installedWallets ) ->
+        ( ReceiveEnabledWallet dropdownState maybeChoosenWallet, NotConnectedButWalletsInstalled installedWallets ) ->
+            case maybeChoosenWallet of
+                Just choosenWallet ->
+                    ( ConnectionEstablished installedWallets dropdownState choosenWallet, Cmd.none )
+
+                Nothing ->
+                    ( NotConnectedNotAbleTo, Cmd.none )
+
+        ( Connect choosenWallet, NotConnectedButWalletsInstalled installedWallets ) ->
             ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") choosenWallet, Cmd.none )
 
         ( ReceiveWalletConnected wallet, Connecting installedWallets dropdownState _ ) ->
             case wallet of
                 Just w ->
-                    let
-                        newModel : Model
-                        newModel =
-                            ConnectionEstablished installedWallets dropdownState w
-                    in
-                    ( newModel, Cmd.none )
+                    ( ConnectionEstablished installedWallets dropdownState w, Cmd.none )
 
                 Nothing ->
                     ( NotConnectedNotAbleTo, Cmd.none )
@@ -181,7 +185,7 @@ dropdownConfig model =
         { itemsFromModel =
             always
                 (case model of
-                    NotConnectedAbleTo installedWallets ->
+                    NotConnectedButWalletsInstalled installedWallets ->
                         installedWallets
 
                     ChoosingWallet installedWallets _ _ ->
@@ -295,7 +299,7 @@ view fontColor model =
                     }
                 )
 
-        NotConnectedAbleTo _ ->
+        NotConnectedButWalletsInstalled _ ->
             Element.layout [ Element.Font.color fontColor ]
                 (Element.text
                     "Connect"
@@ -330,33 +334,39 @@ view fontColor model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    receiveWalletConnection (\s -> ReceiveWalletConnected (decodeWallet s))
+    Sub.batch
+        [ receiveEnabledWallet
+            (\s ->
+                ReceiveEnabledWallet (Dropdown.init "wallet-dropdown") (decodeWallet s)
+            )
+        , receiveWalletConnection (\s -> ReceiveWalletConnected (decodeWallet s))
+        ]
 
 
-init : ( String, List String ) -> ( Model, Cmd Msg )
-init ( enabledWalletString, walletsInstalledStrings ) =
-    let
-        enabledWallet : Maybe SupportedWallet
-        enabledWallet =
-            decodeWallet enabledWalletString
-    in
-    ( case enabledWallet of
-        Just w ->
+init : List String -> ( Model, Cmd Msg )
+init walletsInstalledStrings =
+    -- let
+    --     enabledWallet : Maybe SupportedWallet
+    --     enabledWallet =
+    --         decodeWallet enabledWalletString
+    -- in
+    case walletsInstalledStrings of
+        [] ->
+            ( NotConnectedNotAbleTo, Cmd.none )
+
+        w :: ws ->
             let
                 walletsInstalled : List SupportedWallet
                 walletsInstalled =
                     List.map decodeWallet walletsInstalledStrings
                         |> Maybe.Extra.values
             in
-            ConnectionEstablished walletsInstalled (Dropdown.init "wallet-dropdown") w
-
-        Nothing ->
-            NotConnectedNotAbleTo
-    , Cmd.none
-    )
+            ( NotConnectedButWalletsInstalled walletsInstalled
+            , checkForEnabledWallet ()
+            )
 
 
-main : Program ( String, List String ) Model Msg
+main : Program (List String) Model Msg
 main =
     Browser.element
         { init = init
@@ -364,6 +374,12 @@ main =
         , view = view (Element.rgb255 0 0 0)
         , subscriptions = subscriptions
         }
+
+
+port checkForEnabledWallet : () -> Cmd msg
+
+
+port receiveEnabledWallet : (String -> msg) -> Sub msg
 
 
 port connectWallet : String -> Cmd msg
