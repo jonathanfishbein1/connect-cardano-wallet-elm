@@ -20,10 +20,17 @@ var app = Elm.ConnectWallet.init({
 })
 
 app.ports.connectWallet.subscribe(async supportedWallet => {
-    const wallet = await Wallet.getWalletApi(supportedWallet!) as any
-    lucid.selectWallet(wallet)
-    console.log(wallet)
-    app.ports.receiveWalletConnection.send(supportedWallet)
+    console.log('here here')
+    try {
+        const wallet = await Wallet.getWalletApi(supportedWallet!) as any
+        lucid.selectWallet(wallet)
+        console.log(wallet)
+        app.ports.receiveWalletConnection.send(supportedWallet)
+    }
+    catch (err) {
+        app.ports.receiveWalletConnection.send('err')
+    }
+
 })
 
 
