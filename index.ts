@@ -12,21 +12,12 @@ const bk = "testnetwIyK8IphOti170JCngH0NedP0yK8wBZs"
 
 
 console.log('here')
-console.log(Wallet.hasWalletEnabled())
+console.log(Wallet.walletsEnabled())
 console.log(await Wallet.walletsInstalled)
 var app = Elm.ConnectWallet.init({
-    flags: Wallet.walletsInstalled,
+    flags: (await Wallet.walletsEnabled()),
     node: document.getElementById("elm-app-is-loaded-here")
 })
-
-app.ports.checkForEnabledWallet.subscribe(async () => {
-    console.log('checkForEnabledWallet')
-    console.log(await Wallet.walletsInstalled)
-    console.log(await Wallet.hasWalletEnabled())
-    const enabledWallet = await Wallet.hasWalletEnabled()
-    app.ports.receiveEnabledWallet.send(enabledWallet === undefined ? '' : enabledWallet)
-})
-
 
 app.ports.connectWallet.subscribe(async supportedWallet => {
     const wallet = await Wallet.getWalletApi(supportedWallet!) as any

@@ -23,7 +23,7 @@ const supportedWallets: Array<SupportedWallet> =
 
 export const getWalletApi = async (wallet: SupportedWallet) => window.cardano[wallet].enable()
     , walletsInstalled = supportedWallets.filter(supportedWallet => window.onload = () => window.cardano[supportedWallet] !== undefined)
-    , hasWalletEnabled = async () => await walletsInstalled.find(supportedWallet => {
+    , walletsEnabled = async () => await walletsInstalled.filter(supportedWallet => {
         try {
             return window.cardano[supportedWallet].isEnabled()
         }

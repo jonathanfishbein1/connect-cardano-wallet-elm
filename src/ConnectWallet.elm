@@ -30,8 +30,7 @@ type EnabledSupportedWallet
 
 
 type Msg
-    = Connect SupportedWallet
-    | ReceiveEnabledWallet (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
+    = ChooseWallet
     | NoOp
     | ReceiveWalletConnected (Maybe SupportedWallet)
     | OptionPicked (Maybe SupportedWallet)
@@ -40,7 +39,7 @@ type Msg
 
 type Model
     = NotConnectedNotAbleTo
-    | NotConnectedButWalletsInstalled AvailableWallets
+    | NotConnectedButWalletsInstalledAndEnabled AvailableWallets
     | ChoosingWallet AvailableWallets (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
     | Connecting AvailableWallets (Dropdown.State SupportedWallet) SupportedWallet
     | ConnectionEstablished AvailableWallets (Dropdown.State SupportedWallet) EnabledSupportedWallet
@@ -106,16 +105,8 @@ update msg model =
             in
             ( ChoosingWallet installedWallets state (Just choosenWallet), cmd )
 
-        ( ReceiveEnabledWallet dropdownState maybeChoosenWallet, NotConnectedButWalletsInstalled installedWallets ) ->
-            case maybeChoosenWallet of
-                Just choosenWallet ->
-                    ( ConnectionEstablished installedWallets dropdownState (EnabledSupportedWallet choosenWallet), Cmd.none )
-
-                Nothing ->
-                    ( NotConnectedButWalletsInstalled installedWallets, Cmd.none )
-
-        ( Connect choosenWallet, NotConnectedButWalletsInstalled installedWallets ) ->
-            ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") (Just choosenWallet), Cmd.none )
+        ( _, NotConnectedButWalletsInstalledAndEnabled installedWallets ) ->
+            ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") Nothing, Cmd.none )
 
         ( ReceiveWalletConnected wallet, Connecting installedWallets dropdownState _ ) ->
             case wallet of
@@ -133,9 +124,79 @@ dropdownConfig : Model -> Dropdown.Config SupportedWallet Msg Model
 dropdownConfig model =
     let
         itemToPrompt : SupportedWallet -> Element.Element msg
-        itemToPrompt item =
-            encodeWallet item
-                |> Element.text
+        itemToPrompt supportedWallet =
+            case supportedWallet of
+                Nami ->
+                    Element.row
+                        [ Element.width (Element.px 200)
+                        , Element.spacing 10
+                        ]
+                        [ Element.image
+                            [ Element.width (Element.px 50)
+                            , Element.height (Element.px 50)
+                            ]
+                            { src = "./nami.svg"
+                            , description = "Nami"
+                            }
+                        , encodeWallet
+                            supportedWallet
+                            |> Element.text
+                        , Element.image
+                            [ Element.width (Element.px 50)
+                            , Element.height (Element.px 50)
+                            ]
+                            { src = "./checkmark.svg"
+                            , description = "checkmark"
+                            }
+                        ]
+
+                Eternl ->
+                    Element.row
+                        [ Element.width (Element.px 200)
+                        , Element.spacing 10
+                        ]
+                        [ Element.image
+                            [ Element.width (Element.px 50)
+                            , Element.height (Element.px 50)
+                            ]
+                            { src = "./eternl.webp"
+                            , description = "Eternl"
+                            }
+                        , encodeWallet
+                            supportedWallet
+                            |> Element.text
+                        , Element.image
+                            [ Element.width (Element.px 50)
+                            , Element.height (Element.px 50)
+                            ]
+                            { src = "./checkmark.svg"
+                            , description = "checkmark"
+                            }
+                        ]
+
+                Flint ->
+                    Element.row
+                        [ Element.width (Element.px 200)
+                        , Element.spacing 10
+                        ]
+                        [ Element.image
+                            [ Element.width (Element.px 50)
+                            , Element.height (Element.px 50)
+                            ]
+                            { src = "./flint.svg"
+                            , description = "Flint"
+                            }
+                        , encodeWallet
+                            supportedWallet
+                            |> Element.text
+                        , Element.image
+                            [ Element.width (Element.px 50)
+                            , Element.height (Element.px 50)
+                            ]
+                            { src = "./checkmark.svg"
+                            , description = "checkmark"
+                            }
+                        ]
 
         itemToElement : Bool -> Bool -> SupportedWallet -> Element.Element msg
         itemToElement selected _ supportedWallet =
@@ -228,7 +289,7 @@ dropdownConfig model =
         { itemsFromModel =
             \m ->
                 case m of
-                    NotConnectedButWalletsInstalled installedWallets ->
+                    NotConnectedButWalletsInstalledAndEnabled installedWallets ->
                         installedWallets
 
                     ChoosingWallet installedWallets _ _ ->
@@ -352,6 +413,13 @@ dropdownConfig model =
                                 , encodeWallet
                                     Nami
                                     |> Element.text
+                                , Element.image
+                                    [ Element.width (Element.px 50)
+                                    , Element.height (Element.px 50)
+                                    ]
+                                    { src = "./checkmark.svg"
+                                    , description = "checkmark"
+                                    }
                                 ]
 
                         Just Eternl ->
@@ -403,13 +471,16 @@ dropdownConfig model =
                                 ]
 
                         Nothing ->
-                            Element.none
+                            Element.text "Select Wallet"
 
                 _ ->
                     Element.text "Select Wallet"
             )
         |> Dropdown.withListAttributes [ Element.Border.width 1, Element.Border.rounded 5 ]
-        |> Dropdown.withContainerAttributes [ Element.width (Element.px 200) ]
+
+
+
+-- |> Dropdown.withContainerAttributes [ Element.width (Element.px 200) ]
 
 
 view : Element.Color -> Model -> Html.Html Msg
@@ -421,7 +492,7 @@ view fontColor model =
                     "No available wallet"
                 )
 
-        NotConnectedButWalletsInstalled _ ->
+        NotConnectedButWalletsInstalledAndEnabled _ ->
             Element.layout [ Element.Font.color fontColor ]
                 (Dropdown.view (dropdownConfig model)
                     model
@@ -457,31 +528,23 @@ view fontColor model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.batch
-        [ receiveEnabledWallet
-            (\s ->
-                ReceiveEnabledWallet (Dropdown.init "wallet-dropdown") (decodeWallet s)
-            )
-        , receiveWalletConnection (\s -> ReceiveWalletConnected (decodeWallet s))
-        ]
+    receiveWalletConnection (\s -> ReceiveWalletConnected (decodeWallet s))
 
 
 init : List String -> ( Model, Cmd Msg )
-init walletsInstalledStrings =
-    case walletsInstalledStrings of
+init walletsInstalledAndEnabledStrings =
+    case walletsInstalledAndEnabledStrings of
         [] ->
             ( NotConnectedNotAbleTo, Cmd.none )
 
         _ ->
             let
-                walletsInstalled : List SupportedWallet
-                walletsInstalled =
-                    List.map decodeWallet walletsInstalledStrings
+                walletsInstalledAndEnabled : List SupportedWallet
+                walletsInstalledAndEnabled =
+                    List.map decodeWallet walletsInstalledAndEnabledStrings
                         |> Maybe.Extra.values
             in
-            ( NotConnectedButWalletsInstalled walletsInstalled
-            , checkForEnabledWallet ()
-            )
+            update ChooseWallet (NotConnectedButWalletsInstalledAndEnabled walletsInstalledAndEnabled)
 
 
 main : Program (List String) Model Msg
@@ -492,12 +555,6 @@ main =
         , view = view (Element.rgb255 0 0 0)
         , subscriptions = subscriptions
         }
-
-
-port checkForEnabledWallet : () -> Cmd msg
-
-
-port receiveEnabledWallet : (String -> msg) -> Sub msg
 
 
 port connectWallet : String -> Cmd msg
