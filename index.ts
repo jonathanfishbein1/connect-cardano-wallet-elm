@@ -11,16 +11,13 @@ const bk = "testnetwIyK8IphOti170JCngH0NedP0yK8wBZs"
         'Testnet')
 
 
-console.log('here')
-console.log(Wallet.walletsEnabled())
-console.log(await Wallet.walletsInstalled)
+
 var app = Elm.ConnectWallet.init({
     flags: (await Wallet.walletsEnabled()),
     node: document.getElementById("elm-app-is-loaded-here")
 })
 
 app.ports.connectWallet.subscribe(async supportedWallet => {
-    console.log('here here')
     try {
         const wallet = await Wallet.getWalletApi(supportedWallet!) as any
         lucid.selectWallet(wallet)
@@ -30,7 +27,6 @@ app.ports.connectWallet.subscribe(async supportedWallet => {
     catch (err) {
         app.ports.receiveWalletConnection.send('err')
     }
-
 })
 
 

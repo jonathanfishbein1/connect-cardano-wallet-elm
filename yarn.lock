@@ -1705,10 +1705,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-lucid-cardano@^0.5.9:
-  version "0.5.9"
-  resolved "https://registry.yarnpkg.com/lucid-cardano/-/lucid-cardano-0.5.9.tgz#6820bbdea58da1c4ebad326b15e1e8aff7342f84"
-  integrity sha512-jgMSCL3BwrJ6Vex4J1Ixap5vmjJqmQXgAyPo3CtyUg5+3etSsfvqFTb9GAb4/47HLqdWoqERe0/WOa2HDVZifA==
+lucid-cardano@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/lucid-cardano/-/lucid-cardano-0.6.0.tgz#b71a899aa40d890d17e67b56697d2e9d94f33442"
+  integrity sha512-RnyTa2BKzqjvbgPJrip2ixpVPrvnluUsZElgJUQOduriqsXpKw/aMEXpG2YDRVJOkdmCmHvG6aX1CZ2PIawpsw==
   dependencies:
     "@peculiar/webcrypto" "^1.4.0"
     node-fetch "^3.2.3"
