@@ -7,7 +7,7 @@
     "scripts": {
         "development-connect-cardano-wallet-elm": "webpack serve --config connect-cardano-wallet-elm-webpack.config.js --open",
         "build-connect-cardano-wallet-elm": "webpack build --config connect-cardano-wallet-elm-webpack.config.js",
-        "start-connect-cardano-wallet-elm": "yarn run build-connect-cardano-wallet-elm && cp server.cjs dist/ && cd dist && node server.cjs"
+        "start-connect-cardano-wallet-elm": "yarn run build-connect-cardano-wallet-elm && cd dist && http-server"
     },
     "keywords": [],
     "author": "",
@@ -26,6 +26,7 @@
     "dependencies": {
         "buffer": "^6.0.3",
         "elm": "^0.19.1-5",
+        "http-server": "^14.1.1",
         "lucid-cardano": "^0.6.6"
     }
 }
