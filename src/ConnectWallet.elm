@@ -489,21 +489,21 @@ view fontColor model =
                 )
 
         NotConnectedButWalletsInstalledAndEnabled _ ->
-            Element.layout [ Element.paddingEach { top = 0, right = 0, bottom = 150, left = 0 }, Element.Font.color fontColor ]
+            Element.layout [ Element.Font.color fontColor ]
                 (Dropdown.view (dropdownConfig model)
                     model
                     (Dropdown.init "wallet-dropdown")
                 )
 
         ChoosingWallet _ dropdownWallets _ ->
-            Element.layout [ Element.paddingEach { top = 0, right = 0, bottom = 150, left = 0 }, Element.Font.color fontColor ]
+            Element.layout [ Element.Font.color fontColor ]
                 (Dropdown.view (dropdownConfig model)
                     model
                     dropdownWallets
                 )
 
         Connecting _ dropdownState _ ->
-            Element.layout [ Element.paddingEach { top = 0, right = 0, bottom = 150, left = 0 }, Element.Font.color fontColor ]
+            Element.layout [ Element.Font.color fontColor ]
                 (Element.column
                     []
                     [ Dropdown.view (dropdownConfig model)
@@ -515,7 +515,7 @@ view fontColor model =
                 )
 
         ConnectionEstablished _ dropdownState _ ->
-            Element.layout [ Element.paddingEach { top = 0, right = 0, bottom = 150, left = 0 }, Element.Font.color fontColor ]
+            Element.layout [ Element.Font.color fontColor ]
                 (Dropdown.view (dropdownConfig model)
                     model
                     dropdownState
