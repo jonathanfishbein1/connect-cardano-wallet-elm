@@ -479,10 +479,6 @@ dropdownConfig model =
         |> Dropdown.withListAttributes [ Element.Border.width 1, Element.Border.rounded 5 ]
 
 
-
--- |> Dropdown.withContainerAttributes [ Element.width (Element.px 200) ]
-
-
 view : Element.Color -> Model -> Html.Html Msg
 view fontColor model =
     case model of
@@ -493,21 +489,21 @@ view fontColor model =
                 )
 
         NotConnectedButWalletsInstalledAndEnabled _ ->
-            Element.layout [ Element.Font.color fontColor ]
+            Element.layout [ Element.paddingEach { top = 0, right = 0, bottom = 150, left = 0 }, Element.Font.color fontColor ]
                 (Dropdown.view (dropdownConfig model)
                     model
                     (Dropdown.init "wallet-dropdown")
                 )
 
         ChoosingWallet _ dropdownWallets _ ->
-            Element.layout [ Element.Font.color fontColor ]
+            Element.layout [ Element.paddingEach { top = 0, right = 0, bottom = 150, left = 0 }, Element.Font.color fontColor ]
                 (Dropdown.view (dropdownConfig model)
                     model
                     dropdownWallets
                 )
 
         Connecting _ dropdownState _ ->
-            Element.layout [ Element.Font.color fontColor ]
+            Element.layout [ Element.paddingEach { top = 0, right = 0, bottom = 150, left = 0 }, Element.Font.color fontColor ]
                 (Element.column
                     []
                     [ Dropdown.view (dropdownConfig model)
@@ -519,7 +515,7 @@ view fontColor model =
                 )
 
         ConnectionEstablished _ dropdownState _ ->
-            Element.layout [ Element.Font.color fontColor ]
+            Element.layout [ Element.paddingEach { top = 0, right = 0, bottom = 150, left = 0 }, Element.Font.color fontColor ]
                 (Dropdown.view (dropdownConfig model)
                     model
                     dropdownState
