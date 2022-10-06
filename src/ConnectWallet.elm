@@ -483,7 +483,7 @@ view : Element.Color -> Model -> Html.Html Msg
 view fontColor model =
     case model of
         NotConnectedNotAbleTo ->
-            Element.layout []
+            Element.layout [ Element.Font.color fontColor ]
                 (Element.text
                     "No available wallet"
                 )
