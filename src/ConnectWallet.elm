@@ -114,7 +114,7 @@ update msg model =
                     ( ConnectionEstablished installedWallets dropdownState (EnabledSupportedWallet w), Cmd.none )
 
                 Nothing ->
-                    ( NotConnectedNotAbleTo, Cmd.none )
+                    ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") Nothing, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
