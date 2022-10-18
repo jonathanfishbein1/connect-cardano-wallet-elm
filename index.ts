@@ -1,6 +1,7 @@
 import * as Wallet from './wallet'
 import * as Lucid from 'lucid-cardano'
 var { Elm } = require('./src/ConnectWallet.elm')
+
 declare var window: any
 
 

@@ -32,27 +32,27 @@ suite =
                 let
                     initialModel : ConnectWallet.Model
                     initialModel =
-                        ConnectWallet.NotConnectedButWalletsInstalledAndEnabled [ ConnectWallet.Nami ]
+                        ConnectWallet.NotConnectedButWalletsInstalledAndEnabled Element.none [ ConnectWallet.Nami ]
 
                     ( newModel, _ ) =
                         ConnectWallet.update ConnectWallet.ChooseWallet initialModel
                 in
                 Expect.equal
                     newModel
-                    (ConnectWallet.ChoosingWallet [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") Nothing)
+                    (ConnectWallet.ChoosingWallet Element.none [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") Nothing)
         , Test.test "test ReceiveWalletConnected with Connecting" <|
             \_ ->
                 let
                     initialModel : ConnectWallet.Model
                     initialModel =
-                        ConnectWallet.Connecting [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") ConnectWallet.Nami
+                        ConnectWallet.Connecting Element.none [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") ConnectWallet.Nami
 
                     ( newModel, _ ) =
                         ConnectWallet.update (ConnectWallet.ReceiveWalletConnected (Maybe.Just ConnectWallet.Nami)) initialModel
                 in
                 Expect.equal
                     newModel
-                    (ConnectWallet.ConnectionEstablished [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") (ConnectWallet.EnabledSupportedWallet ConnectWallet.Nami))
+                    (ConnectWallet.ConnectionEstablished Element.none [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") (ConnectWallet.EnabledSupportedWallet ConnectWallet.Nami))
         , Test.test "test NotConnectedNotAbleTo view" <|
             \_ ->
                 let
@@ -70,7 +70,7 @@ suite =
                 let
                     initialModel : ConnectWallet.Model
                     initialModel =
-                        ConnectWallet.NotConnectedButWalletsInstalledAndEnabled [ ConnectWallet.Nami ]
+                        ConnectWallet.NotConnectedButWalletsInstalledAndEnabled Element.none [ ConnectWallet.Nami ]
                 in
                 Test.Html.Query.fromHtml (ConnectWallet.view (Element.rgb255 0 0 0) initialModel)
                     |> Test.Html.Query.find [ Test.Html.Selector.attribute (Html.Attributes.attribute "data-dropdown-id" "wallet-dropdown") ]
@@ -80,7 +80,7 @@ suite =
                 let
                     initialModel : ConnectWallet.Model
                     initialModel =
-                        ConnectWallet.ConnectionEstablished [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") (ConnectWallet.EnabledSupportedWallet ConnectWallet.Nami)
+                        ConnectWallet.ConnectionEstablished Element.none [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") (ConnectWallet.EnabledSupportedWallet ConnectWallet.Nami)
                 in
                 Test.Html.Query.fromHtml (ConnectWallet.view (Element.rgb255 0 0 0) initialModel)
                     |> Test.Html.Query.find [ Test.Html.Selector.id "wallet-dropdown" ]
@@ -94,7 +94,7 @@ suite =
                 let
                     initialModel : ConnectWallet.Model
                     initialModel =
-                        ConnectWallet.Connecting [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") ConnectWallet.Nami
+                        ConnectWallet.Connecting Element.none [ ConnectWallet.Nami ] (Dropdown.init "wallet-dropdown") ConnectWallet.Nami
                 in
                 Test.Html.Query.fromHtml (ConnectWallet.view (Element.rgb255 0 0 0) initialModel)
                     |> Test.Html.Query.find [ Test.Html.Selector.text "Connecting" ]

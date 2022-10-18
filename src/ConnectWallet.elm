@@ -39,10 +39,10 @@ type Msg
 
 type Model
     = NotConnectedNotAbleTo
-    | NotConnectedButWalletsInstalledAndEnabled AvailableWallets
-    | ChoosingWallet AvailableWallets (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
-    | Connecting AvailableWallets (Dropdown.State SupportedWallet) SupportedWallet
-    | ConnectionEstablished AvailableWallets (Dropdown.State SupportedWallet) EnabledSupportedWallet
+    | NotConnectedButWalletsInstalledAndEnabled (Element.Element Msg) AvailableWallets
+    | ChoosingWallet (Element.Element Msg) AvailableWallets (Dropdown.State SupportedWallet) (Maybe SupportedWallet)
+    | Connecting (Element.Element Msg) AvailableWallets (Dropdown.State SupportedWallet) SupportedWallet
+    | ConnectionEstablished (Element.Element Msg) AvailableWallets (Dropdown.State SupportedWallet) EnabledSupportedWallet
 
 
 decodeWallet : String -> Maybe SupportedWallet
@@ -83,45 +83,45 @@ type SupportedWallet
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( OptionPicked option, ChoosingWallet installedWallets dropdownState choosenWallet ) ->
+        ( OptionPicked option, ChoosingWallet selectWalletElement installedWallets dropdownState choosenWallet ) ->
             case option of
                 Just walletChoice ->
-                    ( Connecting installedWallets dropdownState walletChoice, connectWallet (encodeWallet walletChoice) )
+                    ( Connecting selectWalletElement installedWallets dropdownState walletChoice, connectWallet (encodeWallet walletChoice) )
 
                 Nothing ->
-                    ( ChoosingWallet installedWallets dropdownState choosenWallet, Cmd.none )
+                    ( ChoosingWallet selectWalletElement installedWallets dropdownState choosenWallet, Cmd.none )
 
-        ( DropdownMsg subMsg, ChoosingWallet installedWallets dropdownState choosenWallet ) ->
+        ( DropdownMsg subMsg, ChoosingWallet selectWalletElement installedWallets dropdownState choosenWallet ) ->
             let
                 ( state, cmd ) =
-                    Dropdown.update (dropdownConfig model) subMsg model dropdownState
+                    Dropdown.update (dropdownConfig selectWalletElement model) subMsg model dropdownState
             in
-            ( ChoosingWallet installedWallets state choosenWallet, cmd )
+            ( ChoosingWallet selectWalletElement installedWallets state choosenWallet, cmd )
 
-        ( DropdownMsg subMsg, ConnectionEstablished installedWallets dropdownState (EnabledSupportedWallet choosenWallet) ) ->
+        ( DropdownMsg subMsg, ConnectionEstablished selectWalletElement installedWallets dropdownState (EnabledSupportedWallet choosenWallet) ) ->
             let
                 ( state, cmd ) =
-                    Dropdown.update (dropdownConfig model) subMsg model dropdownState
+                    Dropdown.update (dropdownConfig selectWalletElement model) subMsg model dropdownState
             in
-            ( ChoosingWallet installedWallets state (Just choosenWallet), cmd )
+            ( ChoosingWallet selectWalletElement installedWallets state (Just choosenWallet), cmd )
 
-        ( _, NotConnectedButWalletsInstalledAndEnabled installedWallets ) ->
-            ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") Nothing, Cmd.none )
+        ( _, NotConnectedButWalletsInstalledAndEnabled selectWalletElement installedWallets ) ->
+            ( ChoosingWallet selectWalletElement installedWallets (Dropdown.init "wallet-dropdown") Nothing, Cmd.none )
 
-        ( ReceiveWalletConnected wallet, Connecting installedWallets dropdownState _ ) ->
+        ( ReceiveWalletConnected wallet, Connecting selectWalletElement installedWallets dropdownState _ ) ->
             case wallet of
                 Just w ->
-                    ( ConnectionEstablished installedWallets dropdownState (EnabledSupportedWallet w), Cmd.none )
+                    ( ConnectionEstablished selectWalletElement installedWallets dropdownState (EnabledSupportedWallet w), Cmd.none )
 
                 Nothing ->
-                    ( ChoosingWallet installedWallets (Dropdown.init "wallet-dropdown") Nothing, Cmd.none )
+                    ( ChoosingWallet selectWalletElement installedWallets (Dropdown.init "wallet-dropdown") Nothing, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
 
 
-dropdownConfig : Model -> Dropdown.Config SupportedWallet Msg Model
-dropdownConfig model =
+dropdownConfig : Element.Element Msg -> Model -> Dropdown.Config SupportedWallet Msg Model
+dropdownConfig selectWalletElement model =
     let
         itemToPrompt : SupportedWallet -> Element.Element msg
         itemToPrompt supportedWallet =
@@ -289,16 +289,16 @@ dropdownConfig model =
         { itemsFromModel =
             \m ->
                 case m of
-                    NotConnectedButWalletsInstalledAndEnabled installedWallets ->
+                    NotConnectedButWalletsInstalledAndEnabled _ installedWallets ->
                         installedWallets
 
-                    ChoosingWallet installedWallets _ _ ->
+                    ChoosingWallet _ installedWallets _ _ ->
                         installedWallets
 
-                    Connecting installedWallets _ _ ->
+                    Connecting _ installedWallets _ _ ->
                         installedWallets
 
-                    ConnectionEstablished installedWallets _ _ ->
+                    ConnectionEstablished _ installedWallets _ _ ->
                         installedWallets
 
                     _ ->
@@ -306,10 +306,10 @@ dropdownConfig model =
         , selectionFromModel =
             \m ->
                 case m of
-                    Connecting _ _ selectedOption ->
+                    Connecting _ _ _ selectedOption ->
                         Just selectedOption
 
-                    ChoosingWallet _ _ selectedOption ->
+                    ChoosingWallet _ _ _ selectedOption ->
                         selectedOption
 
                     _ ->
@@ -322,7 +322,7 @@ dropdownConfig model =
         |> Dropdown.withSelectAttributes [ Element.Border.width 1, Element.Border.rounded 5, Element.paddingXY 16 8 ]
         |> Dropdown.withPromptElement
             (case model of
-                ConnectionEstablished _ _ (EnabledSupportedWallet supportedWallet) ->
+                ConnectionEstablished _ _ _ (EnabledSupportedWallet supportedWallet) ->
                     case supportedWallet of
                         Nami ->
                             Element.row
@@ -396,7 +396,7 @@ dropdownConfig model =
                                     }
                                 ]
 
-                ChoosingWallet _ _ supportedWallet ->
+                ChoosingWallet _ _ _ supportedWallet ->
                     case supportedWallet of
                         Just Nami ->
                             Element.row
@@ -471,10 +471,10 @@ dropdownConfig model =
                                 ]
 
                         Nothing ->
-                            Element.text "Select Wallet"
+                            selectWalletElement
 
                 _ ->
-                    Element.text "Select Wallet"
+                    selectWalletElement
             )
         |> Dropdown.withListAttributes [ Element.Border.width 1, Element.Border.rounded 5 ]
 
@@ -488,25 +488,25 @@ view fontColor model =
                     "No available wallet"
                 )
 
-        NotConnectedButWalletsInstalledAndEnabled _ ->
+        NotConnectedButWalletsInstalledAndEnabled selectWalletElement _ ->
             Element.layout [ Element.Font.color fontColor ]
-                (Dropdown.view (dropdownConfig model)
+                (Dropdown.view (dropdownConfig selectWalletElement model)
                     model
                     (Dropdown.init "wallet-dropdown")
                 )
 
-        ChoosingWallet _ dropdownWallets _ ->
+        ChoosingWallet selectWalletElement _ dropdownWallets _ ->
             Element.layout [ Element.Font.color fontColor ]
-                (Dropdown.view (dropdownConfig model)
+                (Dropdown.view (dropdownConfig selectWalletElement model)
                     model
                     dropdownWallets
                 )
 
-        Connecting _ dropdownState _ ->
+        Connecting selectWalletElement _ dropdownState _ ->
             Element.layout [ Element.Font.color fontColor ]
                 (Element.column
                     []
-                    [ Dropdown.view (dropdownConfig model)
+                    [ Dropdown.view (dropdownConfig selectWalletElement model)
                         model
                         dropdownState
                     , Element.text
@@ -514,9 +514,9 @@ view fontColor model =
                     ]
                 )
 
-        ConnectionEstablished _ dropdownState _ ->
+        ConnectionEstablished selectWalletElement _ dropdownState _ ->
             Element.layout [ Element.Font.color fontColor ]
-                (Dropdown.view (dropdownConfig model)
+                (Dropdown.view (dropdownConfig selectWalletElement model)
                     model
                     dropdownState
                 )
@@ -540,7 +540,18 @@ init walletsInstalledAndEnabledStrings =
                     List.map decodeWallet walletsInstalledAndEnabledStrings
                         |> Maybe.Extra.values
             in
-            update ChooseWallet (NotConnectedButWalletsInstalledAndEnabled walletsInstalledAndEnabled)
+            update ChooseWallet
+                (NotConnectedButWalletsInstalledAndEnabled
+                    (Element.image
+                        [ Element.width (Element.px 200)
+                        , Element.height (Element.px 50)
+                        ]
+                        { src = "./select wallet.png"
+                        , description = "select wallet"
+                        }
+                    )
+                    walletsInstalledAndEnabled
+                )
 
 
 main : Program (List String) Model Msg
@@ -548,7 +559,9 @@ main =
     Browser.element
         { init = init
         , update = update
-        , view = view (Element.rgb255 0 0 0)
+        , view =
+            view
+                (Element.rgb255 0 0 0)
         , subscriptions = subscriptions
         }
 
