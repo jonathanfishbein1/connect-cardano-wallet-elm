@@ -9,7 +9,7 @@ let
     publishBinsFor = [ "webpack" "webpack-cli" ];
   };
 in
-pkgs.stdenv.mkDerivation {
+pkgs.stdenv.mkDerivation rec {
   name = "connect-cardano-wallet-elm";
   src = pkgs.lib.cleanSource ./.;
 
@@ -36,6 +36,11 @@ pkgs.stdenv.mkDerivation {
 
   installPhase = ''
     mkdir -p $out
+    mkdir -p $out/${name}/src
+    cp ./wallet.ts $out/${name}
+    cp ./src/ConnectWallet.elm $out/${name}/src
+    cp -r ./images $out/${name}
     yarn --offline build-connect-cardano-wallet-elm
+    cp -r ./dist $out
   '';
 }
